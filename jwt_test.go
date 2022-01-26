@@ -11,7 +11,7 @@ import (
 func Test(t *testing.T) {
 	key := "secret"
 
-	token := jwt.NewToken(47985943326, time.Now().Unix(), key)
+	token := jwt.NewToken("47985943326", time.Now().Unix(), key)
 
 	fmt.Printf("token: %s\n", token)
 

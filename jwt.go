@@ -36,7 +36,7 @@ func (t Token) String() string {
 func (t Token) GetBody() (snowflakes.ID, int64, error) {
 	body, _, err := t.getSubmatch()
 	if err != nil {
-		return 0, 0, ErrInvalidFormat
+		return "", 0, ErrInvalidFormat
 	}
 	return getIdFromBody(body)
 }
@@ -45,7 +45,7 @@ func (t Token) ValidateToken(key string) (snowflakes.ID, int64, bool) {
 	body, mac, err := t.getSubmatch()
 	if err != nil {
 		fmt.Println("1")
-		return 0, 0, false
+		return "", 0, false
 	}
 	id, timestamp, err := getIdFromBody(body)
 	if err != nil {
@@ -72,7 +72,7 @@ func getIdFromBody(body string) (snowflakes.ID, int64, error) {
 	var tBody = tokenBody{}
 	data, err := base64.RawURLEncoding.DecodeString(string(body))
 	if err != nil {
-		return 0, 0, err
+		return "", 0, err
 	}
 	err = json.Unmarshal(data, &tBody)
 	return tBody.Id, tBody.Timestamp, err
