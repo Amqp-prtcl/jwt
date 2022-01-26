@@ -19,5 +19,5 @@ func Test(t *testing.T) {
 	fmt.Printf("(1) id: %v, time: %v, ok: %v\n", id1, time1, ok)
 
 	id2, time2, ok := token.ValidateToken(key)
-	fmt.Printf("(2) id: %v, time:%v, ok: %v\n", id2, time2, ok)
+	fmt.Printf("(2) id: %v, time: %v, ok: %v\n", id2, time2, ok)
 }

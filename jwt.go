@@ -44,15 +44,12 @@ func (t Token) GetBody() (snowflakes.ID, int64, error) {
 func (t Token) ValidateToken(key string) (snowflakes.ID, int64, bool) {
 	body, mac, err := t.getSubmatch()
 	if err != nil {
-		fmt.Println("1")
 		return "", 0, false
 	}
 	id, timestamp, err := getIdFromBody(body)
 	if err != nil {
-		fmt.Println(err)
 		return id, timestamp, false
 	}
-	fmt.Println("3")
 	return id, timestamp, hmac.Equal(mac, []byte(ComputeHmac256(body, key)))
 }
 
