@@ -63,6 +63,11 @@ func (t Token) getSubmatch() (string, []byte, error) {
 	return string(sub[1]), sub[2], nil
 }
 
+// same as Token.ValidateToken(string)
+func ValidateToken(t Token, key string) (snowflakes.ID, int64, bool) {
+	return t.ValidateToken(key)
+}
+
 //BODY
 
 func getIdFromBody(body string) (snowflakes.ID, int64, error) {
