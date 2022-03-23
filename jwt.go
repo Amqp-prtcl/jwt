@@ -4,7 +4,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"regexp"
 
@@ -23,34 +22,35 @@ type tokenBody struct {
 
 type Token []byte
 
-func NewToken(id snowflakes.ID, timestamp int64, secret string) Token {
-	body := getBodyFromId(id, timestamp)
-	mac := ComputeHmac256(body, secret)
-	return Token(body + "." + mac)
+func NewToken(body []byte, secret string) Token {
+	data := encodeToBase64(body)
+	mac := computeHmac256(data, secret)
+	return Token(data + "." + mac)
 }
 
 func (t Token) String() string {
 	return string(t)
 }
 
-func (t Token) GetBody() (snowflakes.ID, int64, error) {
+// does not check token's validity; use ValidateToken() instead
+func (t Token) GetBody() ([]byte, error) {
 	body, _, err := t.getSubmatch()
 	if err != nil {
-		return "", 0, ErrInvalidFormat
+		return nil, ErrInvalidFormat
 	}
-	return getIdFromBody(body)
+	return decodeToBase64(body)
 }
 
-func (t Token) ValidateToken(key string) (snowflakes.ID, int64, bool) {
+func (t Token) ValidateToken(key string) ([]byte, bool) {
 	body, mac, err := t.getSubmatch()
 	if err != nil {
-		return "", 0, false
+		return nil, false
 	}
-	id, timestamp, err := getIdFromBody(body)
+	data, err := decodeToBase64(body)
 	if err != nil {
-		return id, timestamp, false
+		return nil, false
 	}
-	return id, timestamp, hmac.Equal(mac, []byte(ComputeHmac256(body, key)))
+	return data, hmac.Equal(mac, []byte(computeHmac256(body, key)))
 }
 
 //SUBMATCH
@@ -65,28 +65,20 @@ func (t Token) getSubmatch() (string, []byte, error) {
 
 //BODY
 
-func getIdFromBody(body string) (snowflakes.ID, int64, error) {
-	var tBody = tokenBody{}
-	data, err := base64.RawURLEncoding.DecodeString(string(body))
-	if err != nil {
-		return "", 0, err
-	}
-	err = json.Unmarshal(data, &tBody)
-	return tBody.Id, tBody.Timestamp, err
+func encodeToBase64(body []byte) string {
+	/*var dst = make([]byte, base64.RawURLEncoding.EncodedLen(len(body)))
+	base64.RawURLEncoding.Encode(dst, body)
+	return dst*/
+	return base64.RawURLEncoding.EncodeToString(body)
 }
 
-func getBodyFromId(id snowflakes.ID, timestamp int64) string {
-	var body = tokenBody{
-		Id:        id,
-		Timestamp: timestamp,
-	}
-	data, _ := json.Marshal(body)
-	return base64.RawURLEncoding.EncodeToString(data)
+func decodeToBase64(enc string) ([]byte, error) {
+	return base64.RawURLEncoding.DecodeString(enc)
 }
 
 //HMAC
 
-func ComputeHmac256(body string, secret string) string {
+func computeHmac256(body string, secret string) string {
 	key := []byte(secret)
 	h := hmac.New(sha256.New, key)
 	h.Write([]byte(body))
