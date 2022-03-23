@@ -6,19 +6,12 @@ import (
 	"encoding/base64"
 	"fmt"
 	"regexp"
-
-	"github.com/Amqp-prtcl/snowflakes"
 )
 
 var (
 	regex            = regexp.MustCompile(`^([^\. ]+)\.([^\. ]+)$`)
 	ErrInvalidFormat = fmt.Errorf("token err: invalid format")
 )
-
-type tokenBody struct {
-	Id        snowflakes.ID `json:"id"`
-	Timestamp int64         `json:"stamp"`
-}
 
 type Token []byte
 
@@ -53,6 +46,11 @@ func (t Token) ValidateToken(key string) ([]byte, bool) {
 	return data, hmac.Equal(mac, []byte(computeHmac256(body, key)))
 }
 
+// same as t.ValidateToken(key)
+func ValidateToken(t Token, key string) ([]byte, bool) {
+	return t.ValidateToken(key)
+}
+
 //SUBMATCH
 
 func (t Token) getSubmatch() (string, []byte, error) {
@@ -61,11 +59,6 @@ func (t Token) getSubmatch() (string, []byte, error) {
 		return "", nil, ErrInvalidFormat
 	}
 	return string(sub[1]), sub[2], nil
-}
-
-// same as Token.ValidateToken(string)
-func ValidateToken(t Token, key string) (snowflakes.ID, int64, bool) {
-	return t.ValidateToken(key)
 }
 
 //BODY
